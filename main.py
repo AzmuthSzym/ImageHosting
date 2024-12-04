@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, render_template
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
@@ -38,6 +38,18 @@ class User(UserMixin):
 def load_user(user_id):
     user_data = users.find_one({'_id': user_id})
     return User(user_data) if user_data else None
+
+
+@app.route('/')
+def index():
+    return render_template('base.html')
+
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    # Get user's images from MongoDB
+    return render_template('dashboard.html')
 
 
 # Registration
