@@ -1,0 +1,41 @@
+<!-- dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Welcome section -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800">Welcome, {{ current_user.email }}</h2>
+        <p class="text-gray-600">Manage your images here</p>
+    </div>
+
+    <!-- Upload section -->
+    <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
+        <h3 class="text-lg font-semibold mb-4">Upload New Image</h3>
+        <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+            <div class="flex items-center space-x-4">
+                <input type="file"
+                       name="file"
+                       class="block w-full text-sm text-gray-500
+                              file:mr-4 file:py-2 file:px-4
+                              file:rounded-md file:border-0
+                              file:text-sm file:font-semibold
+                              file:bg-gray-50 file:text-gray-700
+                              hover:file:bg-gray-100">
+                <button type="submit"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-md
+                               hover:bg-blue-700 transition duration-200">
+                    Upload
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Images grid will go here later -->
+    <div class="bg-white p-6 rounded-lg shadow-sm">
+        <h3 class="text-lg font-semibold mb-4">Your Images</h3>
+        <!-- We'll add image grid later -->
+        <p class="text-gray-600">Your uploaded images will appear here</p>
+    </div>
+</div>
+{% endblock %}

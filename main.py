@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
-from flask import Flask, request, jsonify, session, render_template
-from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
+from bson import ObjectId
+from flask import Flask, request, jsonify, session, render_template, redirect, url_for
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
 from dotenv import load_dotenv
@@ -36,8 +37,11 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    user_data = users.find_one({'_id': user_id})
-    return User(user_data) if user_data else None
+    try:
+        user_data = users.find_one({'_id': ObjectId(user_id)})
+        return User(user_data) if user_data else None
+    except:
+        return None
 
 
 @app.route('/')
@@ -45,19 +49,16 @@ def index():
     return render_template('base.html')
 
 
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    # Get user's images from MongoDB
-    return render_template('dashboard.html')
-
-
 # Registration
+@app.route('/register', methods=['GET'])
+def register_page():
+    return render_template('register.html')
+
+
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.json
-    email = data.get('email')
-    password = data.get('password')
+    email = request.form.get('email')
+    password = request.form.get('password')
 
     if users.find_one({'email': email}):
         return jsonify({'error': 'User already exists'}), 400
@@ -73,18 +74,32 @@ def register():
 
 
 # Login
+@app.route('/login', methods=['GET'])
+def login_page():
+    return render_template('login.html')
+
+
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.json
+    data = request.form
     user_data = users.find_one({'email': data.get('email')})
 
     if user_data and bcrypt.check_password_hash(user_data['password'], data.get('password')):
         user = User(user_data)
         login_user(user)
-        token = user.get_id()  # Get the user's session token
-        return jsonify({'message': 'Logged in successfully', 'token': token})
+        return redirect(url_for('dashboard'))
+        # return jsonify({'message': 'Logged in successfully', 'token': token})
 
-    return jsonify({'message': 'Invalid credentials'}), 401
+    return render_template('login.html', error="Invalid credentials")
+    # return jsonify({'message': 'Invalid credentials'}), 401
+
+
+# Logout
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login_page'))
 
 
 # Upload
@@ -121,18 +136,13 @@ def upload():
     return jsonify({'message': 'File uploaded successfully', 'url': url})
 
 
-@app.route('/upload2', methods=['POST'])
-def upload2():
-    token = request.headers.get('Authorization')
-    if token and token.startswith('Bearer '):
-        token = token.split(' ')[1]
-        user = load_user(token)
-        if user:
-            login_user(user)
-            # Your existing upload logic here
-            return jsonify({'message': 'File uploaded successfully'})
-
-    return jsonify({'message': 'Unauthorized'}), 401
+@app.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    print("Dashboard accessed")
+    print("Is authenticated:", current_user.is_authenticated)
+    print("Current user:", current_user)
+    return render_template('dashboard.html')
 
 
 # Protected test

@@ -1,0 +1,19 @@
+<!-- login.html -->
+{% extends "base.html" %}
+
+{% block content %}
+    <nav class="bg-gray-900 text-white p-4">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            <form method="POST" action="{{ url_for('login') }}">
+                <label for="email">Your email:</label>
+                <input id="email" type="email" name="email" required>
+                <label for="password">Password:</label>
+                <input id="password" type="password" name="password" required>
+                <button type="submit">Login</button>
+            </form>
+        {% endif %}
+    </nav>
+{% endblock %}
