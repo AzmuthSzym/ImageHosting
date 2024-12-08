@@ -1,26 +1,38 @@
 <!-- register.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Image Host</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <nav>
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('logout') }}">Logout</a>
-        {% else %}
-            <form method="POST" action="{{ url_for('register') }}">
-                <input type="email" name="email" required>
-                <input type="password" name="password" required>
-                <button type="submit">Register</button>
-            </form>
-            <a href="{{ url_for('login') }}">Login</a>
-            <a href="{{ url_for('register') }}">Register</a>
-        {% endif %}
-    </nav>
-    {% block content %}
-    {% endblock %}
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white p-8 rounded-lg shadow-sm form-custom">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Register</h2>
+
+    <form method="POST" action="{{ url_for('register') }}" class="space-y-4">
+        <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email"
+                   name="email"
+                   id="email"
+                   required
+                   class="form_input-custom w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password"
+                   name="password"
+                   id="password"
+                   required
+                   class="form_input-custom w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <button type="submit"
+                class="btn_red w-full text-white py-2 px-4 rounded-md hover:bg-orange-600 transition duration-200">
+            Register
+        </button>
+    </form>
+
+    <p class="mt-4 text-center text-sm text-gray-600">
+        Already have an account?
+        <a href="{{ url_for('login_page') }}" class="text-blue-600 hover:underline">Login here</a>
+    </p>
+</div>
+{% endblock %}

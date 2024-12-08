@@ -46,7 +46,7 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
-    return render_template('base.html')
+    return render_template('landing.html')
 
 
 # Registration
@@ -99,7 +99,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login_page'))
+    return redirect(url_for('index'))
 
 
 # Upload

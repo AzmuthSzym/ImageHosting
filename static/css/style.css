@@ -1,0 +1,23 @@
+/* static/css/style.css */
+.header-custom {
+    background-color: #A59D84;
+}
+.body-custom {
+    background-color: #C1BAA1;
+}
+
+.form-custom {
+    background-color: #D7D3BF;
+}
+
+.form_input-custom {
+    background-color: #ECEBDE;
+}
+
+.btn_red {
+    background-color: #C62E2E;
+}
+
+.btn_red_hover {
+    background-color: #FA4032;
+}

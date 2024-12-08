@@ -4,38 +4,33 @@
 <head>
     <title>Image Host</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
-<body class="bg-gray-200 min-h-screen">
-    <!-- Dark header like ChatGPT -->
-    <nav class="bg-gray-900 text-white p-4">
+<body class="body-custom min-h-screen">
+    <nav class="header-custom text-white p-4">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">ImageHost</h1>
+            <div class="flex">
+                <img src="{{ url_for('static', filename='img/logo_48x48.png') }}" alt="Logo">
+                <a href="{{ url_for('index') }}" class="text-xl font-bold">ImageHost</a>
+            </div>
             {% if current_user.is_authenticated %}
-                <div class="space-x-4">
-                    <a href="{{ url_for('dashboard') }}" class="hover:text-gray-300">Dashboard</a>
-                    <a href="{{ url_for('logout') }}" class="hover:text-gray-300">Logout</a>
+                <div class="space-x-4 flex">
+                    <a href="{{ url_for('dashboard') }}" class="block text-center w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-900 transition duration-200">Dashboard</a>
+                    <a href="{{ url_for('logout') }}" class="block text-center w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-900 transition duration-200">Logout</a>
                 </div>
             {% else %}
-                <div class="space-x-4">
-                    <a href="{{ url_for('login') }}" class="hover:text-gray-300">Login</a>
-                    <a href="{{ url_for('register') }}" class="hover:text-gray-300">Register</a>
+                <div class="space-x-4 flex">
+                    <a href="{{ url_for('login_page') }}" class="block text-center w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-900 transition duration-200">
+                        Login
+                    </a>
+                    <a href="{{ url_for('register') }}" class="block text-center w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-900 transition duration-200">
+                        Register
+                    </a>
                 </div>
             {% endif %}
         </div>
     </nav>
-
-    <main class="container mx-auto p-8">
-        <div class="grid container mx-auto flex grid-cols-2">
-            <div class="flex flex-col h-full w-full items-center justify-between gap-y-4">
-                <h1 class="text-xl font-bold">Hosting Images, simplified</h1>
-                <h1>A website that allows you to upload and use the images your way</h1>
-            </div>
-            <div class="flex flex-col h-full w-full items-center justify-between">
-                ASd
-            </div>
-        </div>
-        {% block content %}
-        {% endblock %}
-    </main>
+    {% block content %}
+    {% endblock %}
 </body>
 </html>
