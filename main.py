@@ -1,7 +1,8 @@
 import os
+import secrets
 from datetime import datetime
 from bson import ObjectId
-from flask import Flask, request, jsonify, session, render_template, redirect, url_for
+from flask import Flask, request, jsonify, session, render_template, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
@@ -67,7 +68,7 @@ def register():
     user_data = {
         'email': email,
         'password': hashed_password,
-        'api_key': 'TO BE DONE'
+        'api_key': None
     }
     users.insert_one(user_data)
     return jsonify({'message': 'User registered successfully'})
@@ -129,7 +130,8 @@ def upload():
         'filename': filename,
         'user_id': current_user.id,
         'url': url,
-        'timestamp': datetime.now()
+        'timestamp': datetime.now(),
+        'access_type': "private"
     }
     images.insert_one(image_data)
 
@@ -139,10 +141,59 @@ def upload():
 @app.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
-    print("Dashboard accessed")
-    print("Is authenticated:", current_user.is_authenticated)
-    print("Current user:", current_user)
-    return render_template('dashboard.html')
+    # print("Dashboard accessed")
+    # print("Is authenticated:", current_user.is_authenticated)
+    # print("Current user:", current_user)
+    user_images = images.find({'user_id': current_user.id})
+    return render_template('dashboard.html', images=user_images)
+
+
+@app.route('/generate-api-key', methods=['POST'])
+@login_required
+def generate_api_key():
+    new_key = update_user_api_key(current_user.id)
+    if new_key:
+        flash('API key generated successfully')
+    else:
+        flash('Error generating API key')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/regenerate-api-key', methods=['POST'])
+@login_required
+def regenerate_api_key():
+    new_key = update_user_api_key(current_user.id)
+    if new_key:
+        flash('API key regenerated successfully')
+    else:
+        flash('Error regenerating API key')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/delete-image/<image_id>', methods=['POST'])
+@login_required
+def delete_image(image_id):
+    try:
+        image = images.find_one({
+            '_id': ObjectId(image_id),
+            'user_id': current_user.id
+        })
+        if image:
+            filename = image.get('url')
+            bucket_name = 'my-image-hosting-100'
+            folder_name = 'ImageHosting'
+            bucket = storage_client.get_bucket(bucket_name)
+            blob = bucket.blob(f'{folder_name}/{filename[65:]}')
+
+            generation_match_precondition = 0
+            blob.delete()
+            flash('Image deleted successfully')
+            images.delete_one({
+                '_id': ObjectId(image_id)
+            })
+    except Exception as e:
+        flash('Error deleting image', 'error')
+    return redirect(url_for('dashboard'))
 
 
 # Protected test
@@ -160,6 +211,31 @@ def generate_unique_filename(filename):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     _, extension = os.path.splitext(filename)
     return f"{timestamp}{extension}"
+
+
+def is_key_unique(api_key):
+    # Check if this key exists in database
+    existing_user = users.find_one({'api_key': api_key})
+    return existing_user is None
+
+
+def generate_unique_api_key():
+    while True:
+        new_key = secrets.token_hex(32)
+        if is_key_unique(new_key):
+            return new_key
+
+
+def update_user_api_key(user_id):
+    new_key = generate_unique_api_key()
+
+    result = users.update_one(
+        {'_id': ObjectId(user_id)},  # Find user by ID
+        {'$set': {'api_key': new_key}}  # Set new API key
+    )
+    if result.modified_count > 0:
+        return new_key
+    return None
 
 
 if __name__ == '__main__':

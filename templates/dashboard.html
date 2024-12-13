@@ -2,15 +2,54 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="max-w-4xl mx-auto pb-8">
     <!-- Welcome section -->
     <div class="mb-8">
         <h2 class="text-2xl font-bold text-gray-800">Welcome, {{ current_user.email }}</h2>
         <p class="text-gray-600">Manage your images here</p>
     </div>
 
+    <div class="form_input-custom p-6 rounded-lg shadow-sm mb-8">
+        <h3 class="text-lg font-semibold mb-4">Api Key</h3>
+        {% if not current_user.api_key %}
+            <p class="text-gray-600 mb-4">You haven't generated an API key yet.</p>
+            <form action="{{ url_for('generate_api_key') }}" method="post">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    Generate API Key
+                </button>
+            </form>
+        {% else %}
+            <div class="flex items-center space-x-4 mb-4">
+                <input type="text"
+                       value="{{ current_user.api_key }}"
+                       readonly
+                       class="bg-gray-50 border px-3 py-2 rounded-md w-full">
+                <button onclick="copyApiKey()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    Copy
+                </button>
+            </div>
+            <form action="{{ url_for('regenerate_api_key') }}" method="post" class="mt-2">
+                <button type="submit"
+                        class="text-red-600 hover:text-red-700 text-sm">
+                    Regenerate Key
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    <script>
+    function copyApiKey() {
+        const apiKeyInput = document.querySelector('input[readonly]');
+        apiKeyInput.select();
+        document.execCommand('copy');
+        // Optional: Show feedback that it was copied
+        alert('API key copied to clipboard!');
+    }
+    </script>
+
     <!-- Upload section -->
-    <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
+    <div class="form_input-custom p-6 rounded-lg shadow-sm mb-8">
         <h3 class="text-lg font-semibold mb-4">Upload New Image</h3>
         <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
             <div class="flex items-center space-x-4">
@@ -31,11 +70,44 @@
         </form>
     </div>
 
-    <!-- Images grid will go here later -->
-    <div class="bg-white p-6 rounded-lg shadow-sm">
-        <h3 class="text-lg font-semibold mb-4">Your Images</h3>
-        <!-- We'll add image grid later -->
-        <p class="text-gray-600">Your uploaded images will appear here</p>
+    <div class="form_input-custom p-6 rounded-lg shadow-sm">
+        <div class="form-custom p-6 rounded-lg shadow-sm">
+            <h3 class="text-lg font-semibold mb-4">Your Images</h3>
+
+            {% if images %}
+                <div class="grid grid-cols-3 gap-4">
+                    {% for image in images %}
+                        <div class="border rounded-lg p-4">
+                            <img src="{{ image.url }}" alt="Uploaded image" class="w-full h-48 object-cover rounded-md">
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-600">Uploaded: {{ image.timestamp.date() }} on {{ image.timestamp.time() }}</p>
+                                <div class="flex justify-between mt-2">
+                                    <button onclick="copyImageUrl('{{ image.url }}')" class="text-blue-600 text-sm">Copy URL</button>
+                                    <form action="{{ url_for('delete_image', image_id=image._id) }}" method="post" class="inline">
+                                        <button type="submit" class="text-red-600 text-sm">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-600">No images uploaded yet</p>
+            {% endif %}
+        </div>
     </div>
+
+    <script>
+    function copyImageUrl(url) {
+        const temp = document.createElement('input');
+        temp.value = url;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        alert('Image URL copied!');
+    }
+    </script>
+
 </div>
 {% endblock %}
